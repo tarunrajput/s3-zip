@@ -51,16 +51,16 @@ s3Zip
 You can also pass a custom S3 client. For example if you want to zip files from a S3 compatible storage:
 
 ```javascript
-const aws = require('aws-sdk')
+const { S3Client } = require('@aws-sdk/client-s3')
 
-const s3Client = new aws.S3({
+const S3Client = new aws.S3({
   signatureVersion: 'v4',
   s3ForcePathStyle: 'true',
   endpoint: 'http://localhost:9000',
 })
 
 s3Zip
-  .archive({ s3: s3Client, bucket: bucket }, folder, [file1, file2])
+  .archive({ s3: S3Client, bucket: bucket }, folder, [file1, file2])
   .pipe(output)
 ```
 
@@ -74,14 +74,16 @@ Example of s3-zip in combination with [AWS Lambda](aws_lambda.md).
 ```javascript
 const fs = require('fs')
 const join = require('path').join
-const AWS = require('aws-sdk')
+const {
+  S3Client
+} = require("@aws-sdk/client-s3")
 const s3Zip = require('s3-zip')
 const XmlStream = require('xml-stream')
 
 const region = 'bucket-region'
 const bucket = 'name-of-s3-bucket'
 const folder = 'name-of-bucket-folder/'
-const s3 = new AWS.S3({ region: region })
+const s3 = new S3Client({ region: region })
 const params = {
   Bucket: bucket,
   Prefix: folder
@@ -195,7 +197,7 @@ npm run coverage
 
 
 
-[aws-sdk-url]: http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html
+[aws-sdk-url]: https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/configuring-the-jssdk.html
 [npm-badge]: https://badge.fury.io/js/s3-zip.svg
 [npm-url]: https://badge.fury.io/js/s3-zip
 [travis-badge]: https://travis-ci.org/orangewise/s3-zip.svg?branch=master
