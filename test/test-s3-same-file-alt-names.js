@@ -1,28 +1,28 @@
 // Test s3-zip BUT using alternate file names for the same file which is listed multiple times
 
-var s3Zip = require('../s3-zip.js')
-var t = require('tap')
-var fs = require('fs')
-var Stream = require('stream')
-var concat = require('concat-stream')
-var join = require('path').join
-var streamify = require('stream-array')
-var tar = require('tar')
+const s3Zip = require('../s3-zip.js')
+const t = require('tap')
+const fs = require('fs')
+const Stream = require('stream')
+const concat = require('concat-stream')
+const join = require('path').join
+const streamify = require('stream-array')
+const tar = require('tar')
 
-var fileStreamForFiles = function (files, preserveFolderPath) {
-  var rs = new Stream()
+const fileStreamForFiles = function (files, preserveFolderPath) {
+  const rs = new Stream()
   rs.readable = true
 
-  var fileCounter = 0
+  let fileCounter = 0
   streamify(files).on('data', function (file) {
     fileCounter += 1
 
-    var fileStream = fs.createReadStream(join(__dirname, file))
+    const fileStream = fs.createReadStream(join(__dirname, file))
     fileStream.pipe(
       concat(function buffersEmit (buffer) {
         // console.log('buffers concatenated, emit data for ', file);
-        var path = preserveFolderPath ? file : file.replace(/^.*[\\/]/, '')
-        rs.emit('data', { data: buffer, path: path })
+        const path = preserveFolderPath ? file : file.replace(/^.*[\\/]/, '')
+        rs.emit('data', { data: buffer, path })
       })
     )
     fileStream.on('end', function () {
@@ -36,20 +36,20 @@ var fileStreamForFiles = function (files, preserveFolderPath) {
   return rs
 }
 
-var inputFiles = [
-  '/fixtures/folder/a/file.txt',
-  '/fixtures/folder/a/file.txt'
-]
-var outputFiles = [
+const outputFiles = [
   'FILE_1_ALT_1.TXT',
   'FILE_1_ALT_2.TXT'
 ]
-var filesRead = []
+const filesRead = []
 
 t.test('test a tar archive with alternate names for one file listed many times', function (child) {
-  var outputPath = join(__dirname, '/test-same_file_alt_name.tar')
-  var output = fs.createWriteStream(outputPath)
-  var archive = s3Zip
+  const inputFiles = [
+    '/fixtures/folder/a/file.txt',
+    '/fixtures/folder/a/file.txt'
+  ]
+  const outputPath = join(__dirname, '/test-same_file_alt_name.tar')
+  const output = fs.createWriteStream(outputPath)
+  const archive = s3Zip
     .setFormat('tar')
     .archiveStream(fileStreamForFiles(inputFiles, true), inputFiles, outputFiles)
     .pipe(output)
@@ -68,7 +68,11 @@ t.test('test a tar archive with alternate names for one file listed many times',
 })
 
 t.test('test archive with alternate names for one file listed many times', function (child) {
-  var archive = s3Zip
+  const inputFiles = [
+    '/fixtures/folder/a/file.txt',
+    '/fixtures/folder/a/file.txt'
+  ]
+  const archive = s3Zip
     .archive({ region: 'region', bucket: 'bucket' },
       '',
       inputFiles,

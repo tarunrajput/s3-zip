@@ -4,7 +4,8 @@
 
 
 ```javascript
-const AWS = require('aws-sdk')
+const { Upload } = require("@aws-sdk/lib-storage");
+const { S3 } = require("@aws-sdk/client-s3");
 const s3Zip = require('s3-zip')
 
 exports.handler = function (event, context) {
@@ -22,8 +23,11 @@ exports.handler = function (event, context) {
 
     const body = s3Zip.archive({ region: region, bucket: bucket}, folder, files)
     const zipParams = { params: { Bucket: bucket, Key: folder + zipFileName } }
-    const zipFile = new AWS.S3(zipParams)
-    zipFile.upload({ Body: body })
+    const zipFile = new S3(zipParams)
+    new Upload({
+      client: zipFile,
+      params: { Body: body }
+    })
       .on('httpUploadProgress', function (evt) { console.log(evt) })
       .send(function (e, r) { 
         if (e) {
@@ -40,7 +44,6 @@ exports.handler = function (event, context) {
     console.log(err)    
     context.fail(err)
   }
-
 }
 
 ```
@@ -48,7 +51,7 @@ exports.handler = function (event, context) {
 ## Invoke the function
 
 ```javascript
-const AWS = require('aws-sdk')
+const { LambdaClient } = require("@aws-sdk/client-lambda");
 
 const region = 'bucket-region'
 const bucket = 'name-of-s3-bucket'
@@ -59,11 +62,9 @@ const file3 = 'Image C.png'
 const file4 = 'Image D.png'
 
 
-AWS.config.update({
-  region: region
+const lambda = new LambdaClient({
+  region
 })
-
-const lambda = new AWS.Lambda()
 
 const files = [file1, file2, file3, file4]
 const payload = JSON.stringify({ 
