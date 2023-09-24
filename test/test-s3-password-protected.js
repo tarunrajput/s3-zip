@@ -1,27 +1,27 @@
-var s3Zip = require('../s3-zip.js')
-var t = require('tap')
-var fs = require('fs')
-var Stream = require('stream')
-var concat = require('concat-stream')
-var join = require('path').join
-var streamify = require('stream-array')
-var archiverZipEncryptable = require('archiver-zip-encryptable')
-var { exec } = require('child_process')
+let s3Zip = require('../s3-zip.js')
+const t = require('tap')
+const fs = require('fs')
+const Stream = require('stream')
+const concat = require('concat-stream')
+const join = require('path').join
+const streamify = require('stream-array')
+const archiverZipEncryptable = require('archiver-zip-encryptable')
+const { exec } = require('child_process')
 
-var fileStreamForFiles = function (files, preserveFolderPath) {
-  var rs = new Stream()
+const fileStreamForFiles = function (files, preserveFolderPath) {
+  const rs = new Stream()
   rs.readable = true
 
-  var fileCounter = 0
+  let fileCounter = 0
   streamify(files).on('data', function (file) {
     fileCounter += 1
 
-    var fileStream = fs.createReadStream(join(__dirname, file))
+    const fileStream = fs.createReadStream(join(__dirname, file))
     fileStream.pipe(
       concat(function buffersEmit (buffer) {
         // console.log('buffers concatenated, emit data for ', file);
-        var path = preserveFolderPath ? file : file.replace(/^.*[\\/]/, '')
-        rs.emit('data', { data: buffer, path: path })
+        const path = preserveFolderPath ? file : file.replace(/^.*[\\/]/, '')
+        rs.emit('data', { data: buffer, path })
       })
     )
     fileStream.on('end', function () {
@@ -35,11 +35,11 @@ var fileStreamForFiles = function (files, preserveFolderPath) {
   return rs
 }
 
-var file1 = 'a/file.txt'
-var file2 = 'b/file.txt'
-var sinon = require('sinon')
-var proxyquire = require('proxyquire')
-var s3Stub = fileStreamForFiles(
+const file1 = 'a/file.txt'
+const file2 = 'b/file.txt'
+const sinon = require('sinon')
+const proxyquire = require('proxyquire')
+const s3Stub = fileStreamForFiles(
   ['/fixtures/folder/a/file.txt', '/fixtures/folder/b/file.txt'],
   true
 )
@@ -48,8 +48,8 @@ s3Zip = proxyquire('../s3-zip.js', {
 })
 
 t.test('test archive password protected', async child => {
-  var outputPath = join(__dirname, '/test-password-protected.zip')
-  var output = fs.createWriteStream(outputPath)
+  const outputPath = join(__dirname, '/test-password-protected.zip')
+  const output = fs.createWriteStream(outputPath)
 
   await s3Zip
     .setRegisterFormatOptions('zip-encryptable', archiverZipEncryptable)

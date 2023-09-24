@@ -1,26 +1,26 @@
-var s3Zip = require('../s3-zip.js')
-var t = require('tap')
-var fs = require('fs')
-var Stream = require('stream')
-var concat = require('concat-stream')
-var yauzl = require('yauzl')
-var join = require('path').join
-var streamify = require('stream-array')
+let s3Zip = require('../s3-zip.js')
+const t = require('tap')
+const fs = require('fs')
+const Stream = require('stream')
+const concat = require('concat-stream')
+const yauzl = require('yauzl')
+const join = require('path').join
+const streamify = require('stream-array')
 
-var fileStreamForFiles = function (files, preserveFolderPath) {
-  var rs = new Stream()
+const fileStreamForFiles = function (files, preserveFolderPath) {
+  const rs = new Stream()
   rs.readable = true
 
-  var fileCounter = 0
+  let fileCounter = 0
   streamify(files).on('data', function (file) {
     fileCounter += 1
 
-    var fileStream = fs.createReadStream(join(__dirname, file))
+    const fileStream = fs.createReadStream(join(__dirname, file))
     fileStream.pipe(
       concat(function buffersEmit (buffer) {
         // console.log('buffers concatenated, emit data for ', file);
-        var path = preserveFolderPath ? file : file.replace(/^.*[\\/]/, '')
-        rs.emit('data', { data: buffer, path: path })
+        const path = preserveFolderPath ? file : file.replace(/^.*[\\/]/, '')
+        rs.emit('data', { data: buffer, path })
       })
     )
     fileStream.on('end', function () {
@@ -34,13 +34,13 @@ var fileStreamForFiles = function (files, preserveFolderPath) {
   return rs
 }
 
-var file1 = 'a/file.txt'
-var file1Alt = 'file.txt'
-var file2 = 'b/file.txt'
-var file2Alt = 'file-1.txt'
-var sinon = require('sinon')
-var proxyquire = require('proxyquire')
-var s3Stub = fileStreamForFiles(
+const file1 = 'a/file.txt'
+const file1Alt = 'file.txt'
+const file2 = 'b/file.txt'
+const file2Alt = 'file-1.txt'
+const sinon = require('sinon')
+const proxyquire = require('proxyquire')
+const s3Stub = fileStreamForFiles(
   ['/fixtures/folder/a/file.txt', '/fixtures/folder/b/file.txt'],
   true
 )
@@ -51,10 +51,10 @@ s3Zip = proxyquire('../s3-zip.js', {
 t.test(
   'test archive with matching alternate zip archive names but unique keys',
   function (child) {
-    var outputPath = join(__dirname, '/test-unique.zip')
-    var output = fs.createWriteStream(outputPath)
+    const outputPath = join(__dirname, '/test-unique.zip')
+    const output = fs.createWriteStream(outputPath)
 
-    var archive = s3Zip
+    const archive = s3Zip
       .archive(
         { region: 'region', bucket: 'bucket' },
         '/fixtures/folder/',
@@ -63,13 +63,13 @@ t.test(
       )
       .pipe(output)
 
-    var altFiles = [file1Alt, file2Alt]
+    const altFiles = [file1Alt, file2Alt]
 
     archive.on('close', function () {
       yauzl.open(outputPath, function (err, zip) {
         if (err) console.log('err', err)
         zip.on('entry', function (entry) {
-          var i = altFiles.indexOf(entry.fileName)
+          const i = altFiles.indexOf(entry.fileName)
           if (i > -1) {
             child.same(entry.fileName, altFiles[i])
             altFiles.splice(i, 1)

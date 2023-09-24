@@ -1,15 +1,15 @@
-var s3Zip = require('../s3-zip.js')
-var t = require('tap')
-var fs = require('fs')
-var Stream = require('stream')
-var concat = require('concat-stream')
-var yauzl = require('yauzl')
-var join = require('path').join
+let s3Zip = require('../s3-zip.js')
+const t = require('tap')
+const fs = require('fs')
+const Stream = require('stream')
+const concat = require('concat-stream')
+const yauzl = require('yauzl')
+const { join } = require('path')
 
-var fileStream = function (file, forceError) {
-  var rs = new Stream()
+const fileStream = function (file, forceError) {
+  const rs = new Stream()
   rs.readable = true
-  var fileStream = fs.createReadStream(join(__dirname, file))
+  const fileStream = fs.createReadStream(join(__dirname, file))
   fileStream.pipe(
     concat(function buffersEmit (buffer) {
       if (forceError) {
@@ -27,20 +27,20 @@ var fileStream = function (file, forceError) {
   return rs
 }
 
-var file1 = '/fixtures/file.txt'
-var emptyFile = '/fixtures/empty.txt'
+const file1 = '/fixtures/file.txt'
+const emptyFile = '/fixtures/empty.txt'
 // Stub: var fileStream = s3Files.createFileStream(keyStream);
-var sinon = require('sinon')
-var proxyquire = require('proxyquire')
-var s3Stub = fileStream(file1)
+const sinon = require('sinon')
+const proxyquire = require('proxyquire')
+const s3Stub = fileStream(file1)
 s3Zip = proxyquire('../s3-zip.js', {
   's3-files': { createFileStream: sinon.stub().returns(s3Stub) }
 })
 
 t.test('test archiveStream and zip file', function (child) {
-  var output = fs.createWriteStream(join(__dirname, '/test.zip'))
-  var s = fileStream(file1)
-  var archive = s3Zip.archiveStream(s).pipe(output)
+  const output = fs.createWriteStream(join(__dirname, '/test.zip'))
+  const s = fileStream(file1)
+  const archive = s3Zip.archiveStream(s).pipe(output)
   archive.on('close', function () {
     console.log('+++++++++++')
     yauzl.open(join(__dirname, '/test.zip'), function (err, zip) {
@@ -61,7 +61,7 @@ t.test('test archiveStream and zip file', function (child) {
 })
 
 t.test('test archive', function (child) {
-  var archive = s3Zip.archive(
+  const archive = s3Zip.archive(
     { region: 'region', bucket: 'bucket' },
     'folder',
     [file1]
@@ -71,9 +71,9 @@ t.test('test archive', function (child) {
 })
 
 t.test('test archive on empty file', function (child) {
-  var output = fs.createWriteStream(join(__dirname, '/test.zip'))
-  var s = fileStream(emptyFile)
-  var archive = s3Zip.archiveStream(s).pipe(output)
+  const output = fs.createWriteStream(join(__dirname, '/test.zip'))
+  const s = fileStream(emptyFile)
+  const archive = s3Zip.archiveStream(s).pipe(output)
   archive.on('close', function () {
     console.log('+++++++++++')
     yauzl.open(join(__dirname, '/test.zip'), function (err, zip) {
