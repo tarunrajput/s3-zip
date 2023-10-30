@@ -8,6 +8,8 @@ const concat = require('concat-stream')
 const join = require('path').join
 const streamify = require('stream-array')
 const tar = require('tar')
+const sinon = require('sinon')
+const proxyquire = require('proxyquire')
 
 const fileStreamForFiles = function (files, preserveFolderPath) {
   const rs = new Stream()
@@ -72,6 +74,9 @@ t.test('test archive with alternate names for one file listed many times', funct
     '/fixtures/folder/a/file.txt',
     '/fixtures/folder/a/file.txt'
   ]
+  const s3Zip = proxyquire('../s3-zip.js', {
+    's3-files': { createFileStream: sinon.stub().returns(fileStreamForFiles(inputFiles, true)) }
+  })
   const archive = s3Zip
     .archive({ region: 'region', bucket: 'bucket' },
       '',
